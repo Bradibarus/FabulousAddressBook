@@ -49,6 +49,8 @@ public class Main extends Application{
 
         primaryStage.setTitle("MyApp");
 
+        System.out.println("Now^");
+        this.model.getAll().forEach(System.out::println);
         TableColumn<Contact, String> nameColumn = new TableColumn<>("Name");
         nameColumn.setCellValueFactory(new PropertyValueFactory<Contact, String>("name"));
 
