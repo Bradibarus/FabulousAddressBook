@@ -3,19 +3,31 @@ package MyApp;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
+import javax.persistence.*;
 import java.util.Objects;
 
+@Entity
+@Table(name = "contacts")
 public class Contact {
     final private StringProperty name;
     final private StringProperty number;
+
     private int id;
 
     public void setId(int id) {
         this.id = id;
     }
 
+    @Column
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     public int getId(){
         return id;
+    }
+
+    public Contact() {
+        this.name = new SimpleStringProperty();
+        this.number = new SimpleStringProperty();
     }
 
     public Contact(String name, String number) {
@@ -29,6 +41,7 @@ public class Contact {
         this.id = id;
     }
 
+    @Column
     public String getName() {
         return name.get();
     }
@@ -41,6 +54,7 @@ public class Contact {
         this.name.set(name);
     }
 
+    @Column
     public String getNumber() {
         return number.get();
     }

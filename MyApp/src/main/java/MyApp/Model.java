@@ -3,6 +3,7 @@ package MyApp;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.*;
@@ -18,23 +19,15 @@ public class Model {
     private MyApp.dbOperations dbOperations;
 
     public Model() throws SQLException {
+            contacts = FXCollections.observableList(new ArrayList<Contact>());
         try {
             dbOperations = new dbOperations();
-            contacts = FXCollections.observableList(new ArrayList<Contact>());
-            if(!dbOperations.tableExists("Contacts")) {
-                Logger.getLogger("MyApp").info("Table does not exist \n Creating table...");
-                dbOperations.createContactsTable();
-                Logger.getLogger("MyApp").info("Table successfully created");
-            }else{
-                Logger.getLogger("MyApp").info("Loading data...");
-                dbOperations.loadFromDB(contacts);
-            }
-        } catch (SQLException e) {
+            dbOperations.loadFromDB(contacts);
+            contacts.forEach(System.out::println);
+
+        } catch (IOException e) {
             e.printStackTrace();
-            throw e;
-        } catch (NullPointerException e){
-            e.printStackTrace();
-        };
+        }
     }
 
     public int size(){
@@ -52,12 +45,8 @@ public class Model {
     }
 
     public void delete(Contact contactToDelete) {
-        try {
-            if (contacts.removeAll(contactToDelete)) {
-                dbOperations.deleteContactDB(contactToDelete);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (contacts.removeAll(contactToDelete)) {
+            dbOperations.deleteContactDB(contactToDelete);
         }
     }
 
@@ -100,56 +89,10 @@ public class Model {
         return searchResult;
     }
 
-    public void changeContact(Contact oldContact, Contact.Fields type, String changeValue){
-        Class cl = Contact.class;
-        String methodName = "set"+type.toString();
-        Method method = null;
-        try {
-            method = cl.getMethod(methodName, String.class);
-            for(Contact contact: contacts){
-                if (contact.equals(oldContact)) {
-                    dbOperations.changeContactDB(oldContact, type, changeValue);
-                    method.invoke(contact, changeValue);
-                    break;
-                }
-            }
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
 
     public void changeContact(Contact oldContact, Contact newContact) throws Exception {
-        try {
-            for(Contact contact: contacts){
-                if (contact.equals(oldContact)) {
-                    if(contacts.contains(newContact)) throw new Exception("Contact with such fields already exists");
-                    for(Contact.Fields field: Contact.Fields.values()){
-                        String setMethodName = "set" + field.toString() ;
-                        String getMethodName = "get" + field.toString();
-                        Method setMethod = Contact.class.getMethod(setMethodName, String.class);
-                        Method getMethod = Contact.class.getMethod(getMethodName);
-                        String changeValue = (String) getMethod.invoke(newContact);
-                        dbOperations.changeContactDB(oldContact, field, changeValue);
-                        setMethod.invoke(contact, changeValue);
-
-                    }
-                }
-            }
-
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        dbOperations.changeContactDB(oldContact, newContact);
+        oldContact.setNumber(newContact.getNumber());
+        oldContact.setName(newContact.getName());
     }
 }
